@@ -1,0 +1,269 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: properties
+    description: Property catalog operations
+  - name: leads
+    description: Customer lead operations
+  - name: dashboard
+    description: Admin dashboard summaries
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /properties:
+    get:
+      operationId: listProperties
+      tags: [properties]
+      summary: List published properties
+      parameters:
+        - name: operation
+          in: query
+          schema: { type: string }
+        - name: neighborhood
+          in: query
+          schema: { type: string }
+        - name: propertyType
+          in: query
+          schema: { type: string }
+        - name: minPrice
+          in: query
+          schema: { type: number }
+        - name: maxPrice
+          in: query
+          schema: { type: number }
+        - name: bedrooms
+          in: query
+          schema: { type: number }
+        - name: featured
+          in: query
+          schema: { type: boolean }
+        - name: search
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Properties
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Property" }
+    post:
+      operationId: createProperty
+      tags: [properties]
+      summary: Create a property
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PropertyInput" }
+      responses:
+        "201":
+          description: Created property
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Property" }
+  /properties/{id}:
+    get:
+      operationId: getProperty
+      tags: [properties]
+      summary: Get a property
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: number } }
+      responses:
+        "200":
+          description: Property
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Property" }
+        "404": { description: Not found }
+    patch:
+      operationId: updateProperty
+      tags: [properties]
+      summary: Update a property
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: number } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PropertyUpdate" }
+      responses:
+        "200":
+          description: Updated property
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Property" }
+    delete:
+      operationId: deleteProperty
+      tags: [properties]
+      summary: Archive a property
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: number } }
+      responses:
+        "204": { description: Archived }
+  /dashboard/summary:
+    get:
+      operationId: getDashboardSummary
+      tags: [dashboard]
+      summary: Get admin dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DashboardSummary" }
+  /leads:
+    get:
+      operationId: listLeads
+      tags: [leads]
+      summary: List customer leads
+      responses:
+        "200":
+          description: Leads
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Lead" }
+    post:
+      operationId: createLead
+      tags: [leads]
+      summary: Submit a customer lead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LeadInput" }
+      responses:
+        "201":
+          description: Created lead
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Lead" }
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Property:
+      type: object
+      required: [id, propertyId, titleEn, titleAr, propertyType, operation, neighborhood, price, status, featured, area, bedrooms, bathrooms, imageUrl]
+      properties:
+        id: { type: number }
+        propertyId: { type: string }
+        titleEn: { type: string }
+        titleAr: { type: string }
+        propertyType: { type: string }
+        operation: { type: string }
+        neighborhood: { type: string }
+        compound: { type: ["string", "null"] }
+        price: { type: number }
+        status: { type: string }
+        featured: { type: boolean }
+        area: { type: number }
+        bedrooms: { type: number }
+        bathrooms: { type: number }
+        finishing: { type: ["string", "null"] }
+        floor: { type: ["string", "null"] }
+        elevator: { type: boolean }
+        imageUrl: { type: string }
+        imageUrls:
+          type: array
+          items: { type: string }
+        descriptionEn: { type: ["string", "null"] }
+        descriptionAr: { type: ["string", "null"] }
+        createdAt: { type: string, format: date-time }
+    PropertyInput:
+      type: object
+      required: [titleEn, titleAr, propertyType, operation, neighborhood, price, area, bedrooms, bathrooms]
+      properties:
+        titleEn: { type: string }
+        titleAr: { type: string }
+        propertyType: { type: string }
+        operation: { type: string }
+        neighborhood: { type: string }
+        compound: { type: string }
+        price: { type: number }
+        status: { type: string }
+        featured: { type: boolean }
+        area: { type: number }
+        bedrooms: { type: number }
+        bathrooms: { type: number }
+        finishing: { type: string }
+        floor: { type: string }
+        elevator: { type: boolean }
+        imageUrl: { type: string }
+        imageUrls:
+          type: array
+          items: { type: string }
+        descriptionEn: { type: string }
+        descriptionAr: { type: string }
+    PropertyUpdate:
+      allOf:
+        - $ref: "#/components/schemas/PropertyInput"
+    Lead:
+      type: object
+      required: [id, name, phone, source, status, createdAt]
+      properties:
+        id: { type: number }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: ["string", "null"] }
+        propertyId: { type: ["number", "null"] }
+        propertyTitle: { type: ["string", "null"] }
+        message: { type: ["string", "null"] }
+        source: { type: string }
+        status: { type: string }
+        createdAt: { type: string, format: date-time }
+    LeadInput:
+      type: object
+      required: [name, phone, source]
+      properties:
+        name: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        propertyId: { type: number }
+        message: { type: string }
+        source: { type: string }
+    DashboardSummary:
+      type: object
+      required: [totalProperties, availableProperties, soldProperties, rentedProperties, featuredProperties, newLeads, recentProperties, recentLeads]
+      properties:
+        totalProperties: { type: number }
+        availableProperties: { type: number }
+        soldProperties: { type: number }
+        rentedProperties: { type: number }
+        featuredProperties: { type: number }
+        newLeads: { type: number }
+        recentProperties:
+          type: array
+          items: { $ref: "#/components/schemas/Property" }
+        recentLeads:
+          type: array
+          items: { $ref: "#/components/schemas/Lead" }
+

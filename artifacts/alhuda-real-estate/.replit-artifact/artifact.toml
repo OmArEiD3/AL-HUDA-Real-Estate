@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "AL HUDA Real Estate"
+description = "A premium Arabic-first real estate platform for discovering Sheikh Zayed City properties and managing the catalog, media, publishing, and customer leads."
+version = "1.0.0"
+id = "artifacts/alhuda-real-estate"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 20977
+
+[services.development]
+run = "pnpm --filter @workspace/alhuda-real-estate run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/alhuda-real-estate", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/alhuda-real-estate/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "20977"
+BASE_PATH = "/"
